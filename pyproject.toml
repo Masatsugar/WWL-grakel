@@ -1,0 +1,68 @@
+[tool.poetry]
+name = "wwl_grakel"
+version = "0.1.0"
+description = ""
+authors = ["Masatsugar"]
+
+[tool.poetry.dependencies]
+python = ">=3.8, 3.10<"
+grakel = "^0.1.8"
+POT = "^0.8.1"
+pandas = "^1.4.2"
+tqdm = "^4.64.1"
+
+[tool.poetry.dev-dependencies]
+black = "22.3.0"
+isort = "5.10.1"
+mypy = "0.950"
+flake8 = "4.0.1"
+pre-commit = "2.19.0"
+pytest = "7.1.2"
+pytest-cov = "3.0.0"
+pip-licenses = "3.5.4"
+
+[tool.poetry.extras]
+dev = ["black", "isort", "mypy", "flake8", "pre-commit", "pytest", "pytest-cov"]
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py38', 'py39']
+include = '\.pyi?$'
+extend-exclude = '''
+/(
+  # The following are specific to Black, you probably don't want those.
+  | \.git
+  | \.mypy_cache
+  | \.tox
+  | \venv
+  | \.venv
+  | \.streamlit
+  | \.gitlab
+  | \.pytest_cache
+  | doc
+  | data
+  | tmp
+  | log
+  | upload
+  | dist
+)/
+'''
+
+[tool.isort]
+profile = "black"
+src_paths = ["wwl_grakel", "tests"]
+known_first_party = ["config"]
+
+[tool.mypy]
+python_version = 3.9
+disallow_untyped_defs = false
+check_untyped_defs = true
+ignore_missing_imports = true
+no_site_packages = true
+error_summary = true
+implicit_reexport = true
+
