@@ -1,4 +1,5 @@
 import argparse
+from pathlib import Path
 
 import numpy as np
 from grakel.datasets import fetch_dataset
@@ -6,7 +7,8 @@ from sklearn.metrics import accuracy_score
 from sklearn.model_selection import StratifiedKFold
 from sklearn.svm import SVC
 
-from wwl import WassersteinWeisfeilerLehman
+import wwl_grakel.utils
+from wwl_grakel import WassersteinWeisfeilerLehman
 
 
 def cross_validation(K, y, model, cv):
@@ -18,31 +20,32 @@ def cross_validation(K, y, model, cv):
         model.fit(K_train, y_train)
         y_pred = model.predict(K_test)
         accuracy_scores.append(accuracy_score(y_test, y_pred))
-
-    print(
-        "Mean 10-fold accuracy: {:2.2f} +- {:2.2f} %".format(
-            np.mean(accuracy_scores) * 100, np.std(accuracy_scores) * 100
-        )
-    )
+    return accuracy_scores
 
 
 def main(args):
     np.random.seed(42)
 
     # load MUTAG dataset
-    MUTAG = fetch_dataset("MUTAG", verbose=False)
+
+    MUTAG = fetch_dataset(args.dataset, verbose=False)
     G, y = MUTAG.data, MUTAG.target
 
-    # compute Wasserstein distance
     wwl = WassersteinWeisfeilerLehman(n_iter=args.n_iter)
-    w_dist_mat = wwl.compute_wasserstein_distance(G)
-    # save(wwl_kernel, M)
+    save_path = Path(f"outputs/wl_{wwl.ground_distance}_embeddings_h{wwl.n_iter}.npy")
+    if save_path.exists():
+        Ms = wwl_grakel.utils.load(save_path)
+    else:
+        Ms = wwl.compute_wasserstein_distance(G)
+        wwl_grakel.utils.save(save_path, Ms)
 
-    M = w_dist_mat[2]
+    M = 0
+    for _M in Ms:
+        M += _M
 
     # Cross Validation
-    cv = StratifiedKFold(n_splits=10, shuffle=True)
-    if args.grid_search:
+    cv = StratifiedKFold(n_splits=args.cv, shuffle=True)
+    if args.gridsearch:
         gammas = np.logspace(-4, 1, num=6)
         for gamma in gammas:
             # compute laplacian kernel
@@ -50,22 +53,39 @@ def main(args):
             Cs = np.logspace(-3, 3, num=7)
             for C in Cs:
                 print(f"C={C}, gamma={gamma}")
-                cross_validation(K, y, C, cv)
+                model = SVC(C=C, kernel="precomputed")
+                accuracy_scores = cross_validation(K, y, model, cv)
+                print(
+                    "Mean {}-fold accuracy: {:2.2f} +- {:2.2f} %".format(
+                        args.cv,
+                        np.mean(accuracy_scores) * 100,
+                        np.std(accuracy_scores) * 100,
+                    )
+                )
     else:
         C = 1
         gamma = 10
         model = SVC(C=C, kernel="precomputed")
         K = np.exp(-gamma * M)
-        cross_validation(K, y, model, cv)
+        accuracy_scores = cross_validation(K, y, model, cv)
+
+        print(
+            "Mean {}-fold accuracy: {:2.2f} +- {:2.2f} %".format(
+                args.cv, np.mean(accuracy_scores) * 100, np.std(accuracy_scores) * 100
+            )
+        )
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
+        "--dataset", default="MUTAG", type=str, help="select from grakel dataset"
+    )
+    parser.add_argument(
         "--cv",
-        default=False,
-        action="store_true",
-        help="Enable a 10-fold crossvalidation",
+        default=10,
+        type=int,
+        help=" k-fold cross validation",
     )
     parser.add_argument(
         "--gridsearch", default=False, action="store_true", help="Enable grid search"
