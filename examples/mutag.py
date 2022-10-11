@@ -26,10 +26,8 @@ def cross_validation(K, y, model, cv):
 def main(args):
     np.random.seed(42)
 
-    # load MUTAG dataset
-
-    MUTAG = fetch_dataset(args.dataset, verbose=False)
-    G, y = MUTAG.data, MUTAG.target
+    dataset = fetch_dataset(args.dataset, verbose=False)
+    G, y = dataset.data, dataset.target
 
     wwl = WassersteinWeisfeilerLehman(n_iter=args.n_iter)
     save_path = Path(f"outputs/wl_{wwl.ground_distance}_embeddings_h{wwl.n_iter}.npy")
@@ -46,34 +44,38 @@ def main(args):
     # Cross Validation
     cv = StratifiedKFold(n_splits=args.cv, shuffle=True)
     if args.gridsearch:
-        gammas = np.logspace(-4, 1, num=6)
+        gammas = np.logspace(-4, 1, num=10)
         for gamma in gammas:
             # compute laplacian kernel
             K = np.exp(-gamma * M)
-            Cs = np.logspace(-3, 3, num=7)
+            Cs = np.logspace(-3, 3, num=10)
             for C in Cs:
                 print(f"C={C}, gamma={gamma}")
                 model = SVC(C=C, kernel="precomputed")
                 accuracy_scores = cross_validation(K, y, model, cv)
                 print(
-                    "Mean {}-fold accuracy: {:2.2f} +- {:2.2f} %".format(
-                        args.cv,
-                        np.mean(accuracy_scores) * 100,
-                        np.std(accuracy_scores) * 100,
-                    )
+                    f"WWL(C={C}, gamma={gamma}): Mean {args.cv}-fold accuracy: "
+                    f"{np.mean(accuracy_scores) * 100:2.2f} +- {np.std(accuracy_scores) * 100:2.2f} %"
                 )
     else:
-        C = 1
-        gamma = 10
+        C = args.C
+        gamma = args.gamma
+
         model = SVC(C=C, kernel="precomputed")
         K = np.exp(-gamma * M)
         accuracy_scores = cross_validation(K, y, model, cv)
-
         print(
-            "Mean {}-fold accuracy: {:2.2f} +- {:2.2f} %".format(
-                args.cv, np.mean(accuracy_scores) * 100, np.std(accuracy_scores) * 100
-            )
+            f"WWL(C={C}, gamma={gamma}): Mean {args.cv}-fold accuracy: "
+            f"{np.mean(accuracy_scores) * 100:2.2f} +- {np.std(accuracy_scores) * 100:2.2f} %"
         )
+
+    model = SVC(C=C, kernel="precomputed")
+    K = wwl.wl_kernel.fit_transform(G)
+    accuracy_scores = cross_validation(K, y, model, cv)
+    print(
+        f"WL(C={C}): Mean {args.cv}-fold accuracy: "
+        f"{np.mean(accuracy_scores) * 100:2.2f} +- {np.std(accuracy_scores) * 100:2.2f} %"
+    )
 
 
 if __name__ == "__main__":
@@ -102,6 +104,20 @@ if __name__ == "__main__":
         required=False,
         default=2,
         help="(Max) number of WL iterations",
+    )
+    parser.add_argument(
+        "--C",
+        type=float,
+        required=False,
+        default=1.0,
+        help="SVM C",
+    )
+    parser.add_argument(
+        "--gamma",
+        type=float,
+        required=False,
+        default=10.0,
+        help="Laplacian kernel gamma",
     )
     args = parser.parse_args()
     main(args)

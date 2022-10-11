@@ -5,17 +5,18 @@ Reimplementation of NeurIPS 2019 paper Wasserstein Weisfeiler-Lehman Graph Kerne
 - [original](https://github.com/BorgwardtLab/WWL)
 
 ## Installation
+
 ```shell
 pip install git+https://github.com/Masatsugar/WWL-grakel.git
 ```
 
-- Examples:
+## Examples:
+Graph data is based on Grakel Graph. If you want to know the usages, see `examples/mutag.py`.
 
-```python
-from wwl_grakel import WassersteinWeisfeilerLehman
-
-wwl = WassersteinWeisfeilerLehman(n_iter=2)
-M = wwl.compute_wasserstein_dictance(G)
+```shell
+$ python examples/mutag.py --cv 10 
+WWL(C=1, gamma=10): Mean 10-fold accuracy: 86.67 +- 6.88 %
+WL(C=1): Mean 10-fold accuracy: 81.87 +- 6.06 %
 ```
 
 
