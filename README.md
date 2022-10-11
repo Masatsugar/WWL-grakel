@@ -1,12 +1,12 @@
 # Wasserstein Weisfeiler-Lehman Graph Kernels
 Reimplementation of NeurIPS 2019 paper Wasserstein Weisfeiler-Lehman Graph Kernels. 
 
-- [論文リンク](https://proceedings.neurips.cc/paper/2019/hash/73fed7fd472e502d8908794430511f4d-Abstract.html)
+- [Paper](https://proceedings.neurips.cc/paper/2019/hash/73fed7fd472e502d8908794430511f4d-Abstract.html)
 - [original](https://github.com/BorgwardtLab/WWL)
 
 ## Installation
 ```shell
-pip install 
+pip install git+https://github.com/Masatsugar/WWL-grakel.git
 ```
 
 - Examples:
@@ -20,8 +20,8 @@ M = wwl.compute_wasserstein_dictance(G)
 
 
 ## Requirements
-- グラフカーネル[Grakel](https://ysig.github.io/GraKeL/0.1a8/)
-- 最適輸送: [POT: Python Optimal Transport](https://pythonot.github.io/)
+- [Grakel](https://ysig.github.io/GraKeL/0.1a8/)
+- [POT: Python Optimal Transport](https://pythonot.github.io/)
 
 ## 解説
 
