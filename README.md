@@ -1,5 +1,5 @@
 # Wasserstein Weisfeiler-Lehman Graph Kernels
-Reimplementation of NeurIPS 2019 paper Wasserstein Weisfeiler-Lehman Graph Kernels. 
+Reimplementation of NeurIPS 2019 paper *Wasserstein Weisfeiler-Lehman Graph Kernels by Matteo Togninalli et al*. 
 
 - [Paper](https://proceedings.neurips.cc/paper/2019/hash/73fed7fd472e502d8908794430511f4d-Abstract.html)
 - [original](https://github.com/BorgwardtLab/WWL)
